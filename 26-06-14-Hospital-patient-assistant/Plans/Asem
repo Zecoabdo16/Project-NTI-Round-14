@@ -1,0 +1,143 @@
+# Hospital CRM Multi-Agent System
+
+## 1. Overview of the Project Idea
+
+This project implements a **Customer Relationship Management (CRM) multi-agent AI system** designed specifically for hospitals to enhance patient care, operational efficiency, and patient satisfaction. The system leverages coordinated AI agents to manage various aspects of patient relationships, from historical data review to risk assessment and follow-up communication.
+
+### Core Purpose
+The system centralizes patient management by deploying specialized AI agents that collaborate through an orchestrator to provide comprehensive healthcare relationship management. Each agent handles a distinct domain while working together to deliver personalized, timely, and compliant patient care experiences.
+
+### Key Benefits
+- **Personalized patient care** through historical data analysis and risk assessment
+- **Improved patient loyalty** via database-connected loyalty tracking
+- **Enhanced follow-up compliance** with automated reminders and scheduling
+- **Performance evaluation** through satisfaction and compliance monitoring
+- **Risk mitigation** with severity and urgency calculations
+- **Centralized coordination** ensuring seamless agent collaboration
+
+---
+
+## 2. Multi-Agent Architecture
+
+### 2.1 Architecture Pattern: Hierarchical Supervisor
+
+The system uses a **hierarchical supervisor pattern** with an orchestrator as the central coordinator. This pattern is ideal when workflows decompose naturally into bounded subproblems, when different teams own different workflow stages, when oversight checkpoints between major phases are needed, or when centralized visibility for debugging and compliance auditing is required [web:10].
+
+### 2.2 Agent Roles and Responsibilities
+
+#### **Orchestrator Agent** (Central Coordinator)
+
+| Responsibility | Description |
+|---------------|-------------|
+| Task Routing | Receives incoming patient requests and routes to appropriate agents |
+| Response Aggregation | Combines responses from multiple agents into unified output |
+| Error Handling | Manages retry logic and failure recovery |
+| Context Management | Maintains conversation state across agent interactions |
+| Compliance | Ensures audit trail requirements are met [web:7] |
+
+#### **Patient History Agent**
+
+- **Primary Function**: Reviews past diagnoses & treatments based on a knowledge base
+- Queries electronic health records (EHR) database
+- Retrieves patient's historical diagnosis data
+- Analyzes treatment patterns and outcomes
+- Summarizes relevant medical history for current context
+- Identifies potential contraindications or allergies
+
+#### **Loyalty Agent**
+
+- **Primary Function**: Connects to a database where each patient has a record with the hospital
+- Accesses patient loyalty/reward database [web:3]
+- Tracks patient visit frequency and engagement
+- Calculates loyalty scores and reward tiers
+- Identifies at-risk patients for retention interventions
+- Recommends personalized engagement strategies [web:3]
+
+#### **Follow-Up Communication Agent**
+
+- **Primary Function**: Recovery instructions, Medication reminders, Wellness check-ins, and Follow-up appointment scheduling
+- Generates personalized recovery instruction materials [web:6]
+- Sends medication reminders via preferred channels (SMS, email, app)
+- Conducts automated wellness check-in surveys
+- Schedules follow-up appointments based on care protocols
+- Tracks adherence to follow-up plans [web:6]
+
+#### **Compliance Agent**
+
+- **Primary Function**: Reviews patient satisfaction with service to evaluate performance
+- Collects and analyzes patient satisfaction surveys [web:3]
+- Monitors service quality metrics
+- Identifies compliance gaps with healthcare standards
+- Generates performance reports for management
+- Flags issues requiring immediate attention [web:3]
+
+#### **Risk Agent**
+
+- **Primary Function**: Calculates severity & urgency level based on current situation and medical history
+- Analyzes current symptoms and clinical data
+- Integrates with patient history for context
+- Calculates severity scores (e.g., 1-10 scale)
+- Determines urgency levels (e.g., immediate, urgent, routine)
+- Flags high-risk patients for priority attention [web:5]
+
+---
+
+## 3. Multi-Agent Architecture Diagram
+
+```mermaid
+graph TD
+    %% layout
+    %%{init: {'layout': 'elk'}}%%
+
+    %% Define Entities
+    User([Patient / Trigger Event]):::indigo
+    HITL((Human-in-the-Loop)):::violet
+    Orchestrator{Orchestrator Agent}:::orange
+
+    %% Define Agents
+    History[Patient History Agent]:::teal
+    Risk[Risk Agent]:::red
+    Loyalty[Loyalty Agent]:::cyan
+    FollowUp[Follow-Up Communication Agent]:::sky
+    Compliance[Compliance Agent]:::lime
+
+    %% Define Databases
+    EHR[(EHR / Knowledge Base)]:::green
+    CRM[(Hospital CRM DB)]:::yellow
+
+    %% Core Flow
+    User -->|Input/Event| Orchestrator
+    Orchestrator <-->|1. Fetch Medical Context| History
+    Orchestrator <-->|2. Calculate Severity| Risk
+    Orchestrator <-->|3. Fetch Patient Record| Loyalty
+    Orchestrator <-->|4. Schedule Outreach| FollowUp
+    Orchestrator <-->|5. Analyze Satisfaction| Compliance
+
+    %% Dependencies / Data Flow
+    History <--> EHR
+    Loyalty <--> CRM
+    Compliance <--> CRM
+    History -.->|Historical Data Context| Risk
+
+    %% Human in the loop integration
+    Risk -->|High Urgency Alert| Orchestrator
+    Orchestrator -->|Approval / Escalation| HITL
+    HITL -->|Feedback / Override| Orchestrator
+    FollowUp -.->|Medical Comms Approval| HITL
+
+    %% Color classes
+    classDef indigo stroke:#818cf8,fill:#eef2ff;
+    classDef teal stroke:#2dd4bf,fill:#f0fdfa;
+    classDef violet stroke:#a78bfa,fill:#f5f3ff;
+    classDef orange stroke:#fb923c,fill:#fff7ed;
+    classDef fuchsia stroke:#e879f9,fill:#fdf4ff;
+    classDef cyan stroke:#22d3ee,fill:#ecfeff;
+    classDef green stroke:#4ade80,fill:#f0fdf4;
+    classDef yellow stroke:#facc15,fill:#fefce8;
+    classDef red stroke:#f87171,fill:#fef2f2;
+    classDef sky stroke:#38bdf8,fill:#f0f9ff;
+    classDef lime stroke:#a3e635,fill:#f7fee7;
+    classDef rose stroke:#fb7185,fill:#fff1f2;
+```
+
+*Document created for Hospital CRM Multi-Agent System project - Asem Saber, Cairo*
