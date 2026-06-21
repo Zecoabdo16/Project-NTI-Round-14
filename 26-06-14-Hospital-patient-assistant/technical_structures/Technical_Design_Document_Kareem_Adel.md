@@ -446,56 +446,89 @@ Provide prioritized service with minimal waiting time.
 
 # 13. Technical Project Structure
 
-## Folder Structure
-
 ```text
 hospital-ai-system/
 
 ├── app/
-│   ├── agents/
-│   │   ├── reception_agent.py
-│   │   ├── appointment_agent.py
-│   │   ├── medical_agent.py
-│   │   └── loyalty_agent.py
+│
+├── agents/
+│   │
+│   ├── reception_agent/
+│   │   ├── agent.py
+│   │   ├── prompts.py
+│   │   ├── workflow.py
+│   │   └── schemas.py
+│   │
+│   ├── appointment_agent/
+│   │   ├── agent.py
+│   │   ├── prompts.py
+│   │   ├── workflow.py
+│   │   └── schemas.py
+│   │
+│   ├── medical_agent/
+│   │   ├── agent.py
+│   │   ├── prompts.py
+│   │   ├── workflow.py
+│   │   └── schemas.py
+│   │
+│   └── loyalty_agent/
+│       ├── agent.py
+│       ├── prompts.py
+│       ├── workflow.py
+│       └── schemas.py
+│
+├── shared/
 │   │
 │   ├── tools/
 │   │   ├── auth_tool.py
 │   │   ├── scheduler_tool.py
 │   │   ├── crm_tool.py
 │   │   ├── rag_tool.py
+│   │   ├── notification_tool.py
 │   │   └── history_tool.py
 │   │
-│   ├── orchestrator/
-│   │   ├── router.py
-│   │   ├── workflow.py
-│   │   └── state_manager.py
+│   ├── models/
+│   │   ├── patient.py
+│   │   ├── appointment.py
+│   │   └── conversation.py
 │   │
-│   ├── rag/
-│   │   ├── retriever.py
-│   │   ├── embeddings.py
-│   │   ├── vector_store.py
-│   │   └── ingestion.py
+│   ├── utils/
+│   │   ├── logger.py
+│   │   ├── validators.py
+│   │   └── helpers.py
 │   │
-│   ├── database/
-│   │   ├── patient_db.py
-│   │   ├── conversation_db.py
-│   │   ├── loyalty_db.py
-│   │   └── models.py
-│   │
-│   ├── api/
-│   │   ├── routes.py
-│   │   └── middleware.py
-│   │
-│   └── config/
-│       ├── settings.py
-│       └── prompts.py
+│   └── guardrails/
+│       ├── medical_guardrails.py
+│       ├── privacy_guardrails.py
+│       └── escalation_rules.py
+│
+├── orchestrator/
+│   ├── router.py
+│   ├── workflow_manager.py
+│   └── state_manager.py
+│
+├── rag/
+│   ├── retriever.py
+│   ├── embeddings.py
+│   ├── vector_store.py
+│   └── ingestion.py
+│
+├── database/
+│   ├── patient_db.py
+│   ├── conversation_db.py
+│   ├── loyalty_db.py
+│   └── models.py
+│
+├── api/
+│   ├── routes.py
+│   └── middleware.py
 │
 ├── knowledge_base/
 │   ├── faq/
 │   ├── doctors/
 │   ├── departments/
-│   ├── policies/
-│   └── insurance/
+│   ├── insurance/
+│   └── policies/
 │
 ├── tests/
 │
@@ -504,16 +537,46 @@ hospital-ai-system/
 └── README.md
 ```
 
-### Structure Description
+## Structure Rationale
 
-* agents/: AI agents implementation.
-* tools/: External tools integrations.
-* orchestrator/: Agent routing and workflow management.
-* rag/: Retrieval-Augmented Generation components.
-* database/: Data persistence layer.
-* api/: Communication endpoints.
-* knowledge_base/: Hospital documents and policies.
-* tests/: Validation and testing modules.
+### Agents Layer
+
+Each agent is isolated in its own directory and contains:
+
+* agent.py → agent logic
+* workflow.py → internal execution flow
+* prompts.py → prompts and instructions
+* schemas.py → request and response structures
+
+### Shared Layer
+
+Contains reusable components shared across multiple agents:
+
+* Tools
+* Data Models
+* Utilities
+* Guardrails
+
+### Orchestrator Layer
+
+Responsible for:
+
+* Agent routing
+* Workflow coordination
+* State management
+
+### RAG Layer
+
+Responsible for:
+
+* Document ingestion
+* Embedding generation
+* Retrieval operations
+* Vector storage
+
+### Database Layer
+
+Responsible for data persistence and storage management.
 
 ---
 
