@@ -162,11 +162,11 @@ class Agent:
 ### 5.2 The Five Agents
 | AGENT	| RESPONSIBILITY	| TOOLS	| MEMORY ACCESS| 
 | ---------    | ---------| --------- | ------------------------|
-| Triage	| Collect symptoms, compute score	ask_symptom, score_risk, retrieve_protocol	| Patient history (read)| 
-| History	| Load and update patient profile	get_patient, update_profile, search_episodes| Patient DB (R/W), vector (R/W)| 
-| Scheduling	| Find and book slots	find_slots, book_slot, cancel_slot	| Calendar (R/W)| 
-| Communication	| Speak and send messages	send_sms, make_call, tts_speak	| Session (R/W)| 
-| Escalation| 	Page clinician, hand off	page_clinician, open_voice_bridge, send_summary	| Session (R), audit (W)| 
+| Triage	| Collect symptoms, compute score	|ask_symptom, score_risk, retrieve_protocol	| Patient history (read)| 
+| History	| Load and update patient profile	|get_patient, update_profile, search_episodes| Patient DB (R/W), vector (R/W)| 
+| Scheduling	| Find and book slots	|find_slots, book_slot, cancel_slot	| Calendar (R/W)| 
+| Communication	| Speak and send messages	|send_sms, make_call, tts_speak	| Session (R/W)| 
+| Escalation| 	Page clinician, hand off	|page_clinician, open_voice_bridge, send_summary	| Session (R), audit (W)| 
 
 #### 5.2.1 Agent Input / Output 
 This is the contract each agent implements. It will be put intodocs/agent-contracts.md in the repo. It is the source of truth for what goes in, what comes out, and what gets persisted.
@@ -223,8 +223,9 @@ class SessionState(BaseModel):
     # Observability
     trace: list[dict] = []              # append-only agent decisions
 ```
-**1. Orchestrator
-1.1 Input**
+**1. Orchestrator**
+
+**1.1 Input**
 |  FIELD | 	SOURCE |
 | ---------|---------|
 | SessionState (current)	| In-memory, from previous step| 
@@ -313,17 +314,90 @@ Phone format: Egyptian mobile (^01[0125]\d{8}$) or international
 
 3. Triage Agent
 3.1 Input
+FIELD	TYPE	REQUIRED	NOTES
+patient (full profile)	HistoryOutput	yes	From History Agent
+messages (conversation)	list[Message]	yes	Most recent N turns
+current_symptoms	object	yes	Extracted by Triage during dialogue
+vitals	object	no	If patient has wearable or self-reported
+chief_complaint	string	yes	First reported symptom
+
 3.2 Output
+```python
+class TriageOutput(BaseModel):
+    # Core output
+    risk_score: float = Field(ge=0.0, le=1.0)
+    band: Band
+    red_flags: list[str] = []          # ["chest_pain", "stroke_symptoms", ...]
+
+    # Routing
+    next_action: Literal[
+        "self_care",
+        "schedule_routine",
+        "schedule_urgent",
+        "escalate_emergency",
+        "need_more_info"
+    ]
+
+    # Patient-facing explanation
+    explanation_ar: str                # Arabic
+    explanation_en: str                # English (always generated, shown per channel)
+
+    # Clinical provenance
+    asked_questions: list[str] = []    # ["onset", "severity", "associated_symptoms"]
+    cited_chunks: list[str] = []       # KB chunk IDs used to score
+
+    # Quality flags
+    confidence: float = 1.0            # drops if RAG retrieval was weak
+    requires_clinician_review: bool = False   # true if band in [orange, red]
+
+    # Tracing
+    reasoning_trace: str               # short LLM reasoning summary for audit
+```
+**Tools Available**
+-retrieve_protocol(symptom: str) -> list[Chunk] # RAG from clinical KB
+-score_risk(symptoms, profile) -> float # weighted formula
+-map_score_to_band(score) -> Band
+-generate_explanation(band, red_flags, lang) -> str
+-flag_red_flag(keyword) -> bool # hard override check
+
+**Side Effects**
+- Read:clinical_protocols vector store,state.history,state.patient
+- Write:audit_log (score, band, citations, trace)
+- Append to:state.triage,state.messages (clarifying questions),state.trace
+
+**Validation Rules**
+If anyred_flag is set,band MUST bered (hard rule, no override)
+-risk_score MUST be monotonically aligned withband:
+0.00–0.20 → green
+0.21–0.50 → yellow
+0.51–0.80 → orange
+0.81–1.00 → red
+- cited_chunks MUST be non-empty (RAG-only enforcement)
+If cited_chunks empty, forceconfidence = 0.0 and next_action = need_more_info
+
+**Hard Overrides (No LLM Judgment)**
+TRIGGER	FORCED OUTPUT
+Keyword: "can't breathe" / "chest pain" / "unconscious" / "suicide"	band = red,next_action = escalate_emergency
+Age < 1 with fever	band = orange
+Pregnancy + abdominal pain	band = orange
+Patient says "human" / "real person"	Stop triage, setnext_action = need_more_info, surface to escalation
+
+**Error Cases**
+CONDITION	BEHAVIOR
+RAG returns no chunks	confidence = 0.0, ask for clarifying questions
+Patient refuses to give info	band = yellow (cautious default),next_action = schedule_urgent
+Symptoms clearly beyond scope	Forceescalate_emergency regardless of score
 
 4. Scheduling Agent
 4.1 Input
+   
 4.2 Output
    
-5. Communication Agent
+6. Communication Agent
 5.1 Input
 5.2 Output
 
-6. Escalation Agent
+7. Escalation Agent
 6.1 Input
 6.2 Output
 
