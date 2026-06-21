@@ -1,0 +1,6 @@
+.agents/
+.specify/
+.venv/
+.agent.spec/
+.AGENTS.md
+agy.exe

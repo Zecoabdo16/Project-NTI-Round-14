@@ -679,6 +679,14 @@ Phase 8:
 - Analytics
 - Production Deployment
 
-```
+---
 
-```
+## Clarifications & Scope Decisions (Spec Kit Clarify)
+
+Following the specification clarification step, the following architectural and scope decisions have been finalized:
+
+1. **Interaction Channels (MVP Scope):** The MVP will focus primarily on Text Chat and Medical Image uploads. Voice input and real-time Phone Call/IVR integrations will be simulated or deferred to a later phase.
+2. **Emergency Dispatch Timer:** The emergency timer (e.g., 30s for Heart Attack, 60s for Stroke) serves as a validation window. If the patient does not cancel the alert or a clinician does not override it within that timeframe, the ambulance dispatch triggers automatically.
+3. **LLM & Speech Stack:** Cloud-based models (such as GPT-4o / Claude 3.5 Sonnet) and cloud STT/TTS APIs will be used for rapid development and high reliability.
+4. **Loyalty System Integration:** The loyalty points and rewards will be persisted directly in the Patient Profile table in PostgreSQL. The booking logic will automatically award points upon successful appointment completion.
+
