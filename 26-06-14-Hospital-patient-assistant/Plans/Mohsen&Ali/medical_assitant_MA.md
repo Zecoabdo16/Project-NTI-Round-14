@@ -4,7 +4,7 @@
 
 An agentic medical system that assists patients through:
 
-1. Multi-modal interaction (Text, Voice, Images, Phone Calls)
+1. Multi-modal interaction (Text, Audio Recorded, Images)
 2. Appointment scheduling
 3. Initial diagnosis and triage
 4. Emergency response management
@@ -99,18 +99,17 @@ An agentic medical system that assists patients through:
 
 Patient logs in through:
 
-* Web Chat
-* Mobile App
-* Voice Assistant
-* Phone Call
+- Web Chat
+- Voice Assistant
+- Phone Call
 
 The orchestrator checks:
 
-* Patient Profile
-* Medical History
-* Previous Diagnoses
-* Previous Ambulance Requests
-* Loyalty Points
+- Patient Profile
+- Medical History
+- Previous Diagnoses
+- Previous Ambulance Requests
+- Loyalty Points
 
 ---
 
@@ -120,16 +119,16 @@ The orchestrator checks:
 
 Patient requests:
 
-* Doctor Appointment
-* Department Appointment
+- Doctor Appointment
+- Department Appointment
 
 ### Scheduling Agent
 
 Queries:
 
-* Doctor Database
-* Available Clinics
-* Department Availability
+- Doctor Database
+- Available Clinics
+- Department Availability
 
 ### Available Appointment
 
@@ -143,9 +142,9 @@ Queries:
 
 Recommend:
 
-* Emergency Department
-* Another Hospital
-* Nearest Available Clinic
+- Emergency Department
+- Another Hospital
+- Nearest Available Clinic
 
 ---
 
@@ -155,24 +154,24 @@ Recommend:
 
 Patient may provide:
 
-* Text Complaint
-* Voice Complaint
-* Medical Image
-* Combined Inputs
+- Text Complaint
+- Voice Complaint
+- Medical Image
+- Combined Inputs
 
 ### Diagnosis Agent
 
 Uses:
 
-* Multimodal LLM
-* Medical RAG
-* Vector Database
+- Multimodal LLM
+- Medical RAG
+- Vector Database
 
 Output:
 
-* Department Classification
-* Confidence Score
-* Urgency Score
+- Department Classification
+- Confidence Score
+- Urgency Score
 
 Examples:
 
@@ -211,33 +210,39 @@ Find ophthalmologist appointment.
 
 Diagnosis Agent identifies:
 
-* Heart Attack
-* Stroke
-* Severe Trauma
-* Internal Bleeding
-* Respiratory Failure
+- Heart Attack
+- Stroke
+- Severe Trauma
+- Internal Bleeding
+- Respiratory Failure
 
 ### Emergency Agent
 
 Determines:
 
-* Severity
-* Ambulance Requirement
-* Dispatch Timing
+- Severity
+- Ambulance Requirement
+- Emergency Alert Priority
 
 ### Existing High-Risk Patient
 
 If patient history shows:
 
-* Frequent ambulance requests
-* Chronic heart disease
-* High-risk status
+- Frequent ambulance requests
+- Chronic heart disease
+- High-risk status
 
-Immediately dispatch ambulance.
+Immediately generate emergency alert and notify hospital staff.
 
 ### New Patient
 
 Set emergency timer according to diagnosis.
+
+### Emergency Actions
+
+- Generate Emergency Alert
+- Notify Hospital Staff
+- Recommend Ambulance Dispatch
 
 Examples:
 
@@ -249,7 +254,7 @@ Examples:
 
 After timeout:
 
-Ambulance dispatched automatically.
+Emergency alert is generated and hospital staff are notified.
 
 ---
 
@@ -257,19 +262,19 @@ Ambulance dispatched automatically.
 
 Triggered when:
 
-* Low confidence diagnosis
-* Conflicting symptoms
-* Insufficient information
-* Unknown disease pattern
+- Low confidence diagnosis
+- Conflicting symptoms
+- Insufficient information
+- Unknown disease pattern
 
 ### Workflow
 
 Diagnosis Agent generates:
 
-* Patient Summary
-* Medical History Summary
-* Symptoms Report
-* Suggested Department
+- Patient Summary
+- Medical History Summary
+- Symptoms Report
+- Suggested Department
 
 ↓
 
@@ -283,13 +288,19 @@ Doctor contacts patient directly.
 
 ## 7. Loyalty System
 
-After appointment booking:
+during appointment booking:
+our scheduling agent check if patient have enough points to give him offer
+make orchestrator agent tell user we have available slot and tell him
+"u have [number] points you can use them to get [offer]"
+
+if user tell u he want to use points apply the offer to the payment methode
+
+after appointment booking:
 
 Loyalty Tool:
 
-* Add Points
-* Update Patient Profile
-* Generate Offers
+- Add Points
+- Update Patient Profile
 
 Example:
 
@@ -301,7 +312,180 @@ Example:
 
 ---
 
-## 8. Feedback Agent
+# 8. Medication Reminders
+
+## Purpose
+
+After a patient finishes a doctor consultation and receives a prescription, the system automatically schedules medication reminders.
+
+The goal is to improve medication adherence by notifying patients before their medication time.
+
+---
+
+## Workflow
+
+Doctor Consultation
+
+↓
+
+Prescription Stored in Database
+
+↓
+
+Reminder Scheduler
+
+(Cron Job)
+
+↓
+
+Telegram Notification
+
+↓
+
+Patient Receives Reminder
+
+---
+
+## Prescription Storage
+
+Each prescription contains:
+
+- Medication Name
+- Dosage
+- Frequency
+- Start Date
+- End Date
+- Medication Times
+
+Example:
+
+- Augmentin
+- 1 Tablet
+- Every 12 Hours
+- 08:00 AM
+- 08:00 PM
+
+---
+
+## Reminder Scheduling
+
+A scheduled job runs periodically and checks upcoming medication times.
+
+Rule:
+
+- Send reminder 30 minutes before medication time.
+
+Example:
+
+Medication Time:
+
+08:00 AM
+
+Reminder Sent:
+
+07:30 AM
+
+Telegram Message:
+
+"Reminder: You should take Augmentin at 08:00 AM."
+
+---
+
+## Notification Channel
+
+For the MVP, reminders are sent using Telegram Bot.
+
+Benefits:
+
+- Free
+- Official API
+- Easy Integration
+- No Meta approval required
+- Suitable for graduation projects
+
+---
+
+## Required Components
+
+### Prescription Database
+
+Stores:
+
+- Patient Prescriptions
+- Medication Schedule
+- Treatment Duration
+
+### Reminder Scheduler
+
+Responsibilities:
+
+- Check upcoming medication times
+- Generate reminder events
+- Stop reminders when treatment ends
+
+Implementation:
+
+- Cron Job
+
+### Telegram Service
+
+Responsibilities:
+
+- Send reminder messages
+- Handle delivery failures
+- Log notification history
+
+---
+
+## Data Flow
+
+Doctor
+
+↓
+
+Prescription
+
+↓
+
+PostgreSQL
+
+↓
+
+Reminder Scheduler
+
+↓
+
+Telegram Bot
+
+↓
+
+Patient
+
+---
+
+## Notes
+
+This module is not implemented as an AI Agent because it does not require reasoning or decision-making.
+
+A scheduled background service is sufficient and simpler to maintain.
+
+---
+
+## Notification Service
+
+Used by multiple modules:
+
+- Appointment Notifications
+- Medication Reminders
+- Feedback Requests
+
+Channel:
+
+- Telegram Bot API
+
+---
+
+## 9. Feedback Agent
 
 Cron Job:
 
@@ -311,19 +495,21 @@ Workflow:
 
 1. Contact patient.
 2. Collect satisfaction score.
-3. Collect health status.
-4. Store feedback.
+3. Collect complaints if any
+
+4. Collect health status.
+5. Store feedback.
 
 Stored in:
 
-* R&D Database
-* Analytics Database
+- R&D Database
+- Analytics Database
 
 Used for:
 
-* Service Improvement
-* Model Fine-Tuning
-* KPI Tracking
+- Service Improvement
+- Model Fine-Tuning
+- KPI Tracking
 
 ---
 
@@ -331,72 +517,87 @@ Used for:
 
 ## Frontend
 
-* Next.js
-* React
-* Tailwind CSS
+- Vue.js
+- Tailwind CSS
 
 ## Backend
 
-* FastAPI
-* Python
+- FastAPI
+- Python
 
 ## Agent Framework
 
-* PydanticAI
-* OpenAI Agents SDK
-* LangGraph (optional)
+- LangGraph
 
-## LLMs
+## LLM Provider
 
-### Cloud
+Primary:
 
-* GPT-5
-* Claude Sonnet
+- NVIDIA NIM API
 
-### Local
+Fallback:
 
-* Qwen3
-* Llama 4
-* Gemma 3
+- OpenRouter
+
+## Models
+
+Diagnosis Agent
+
+- Qwen 3
+
+Orchestrator Agent
+
+- Qwen 3
+
+Scheduling Agent
+
+- Qwen 3
+
+Feedback Agent
+
+- Qwen 3
+
+Emergency Agent
+
+- Qwen 3
 
 ## Multimodal Models
 
-* Qwen2.5-VL
-* Llama Vision
-* GPT-4o
+- Qwen2.5-VL
 
 ## Speech-to-Text
 
-* Whisper Large V3
-* Parakeet
+- Whisper Large V3
 
 ## Text-to-Speech
 
-* Kokoro TTS
-* Chatterbox TTS
+MVP:
+
+- Kokoro TTS
+
+Future Enhancement:
+
+- Arabic / Egyptian Arabic TTS Provider
 
 ## Vector Database
 
-* Qdrant
+- Qdrant
 
 ## Relational Database
 
-* PostgreSQL
-
-## Cache
-
-* Redis
+- PostgreSQL
 
 ## Task Scheduling
 
-* Celery
-* Redis Queue
-* Cron Jobs
+- Cron Jobs
 
 ## Monitoring
 
-* Langfuse
-* OpenTelemetry
+- Langfuse
+
+## Notifications
+
+- Telegram Bot API
 
 ---
 
@@ -446,42 +647,46 @@ medical-agentic-system/
 
 Phase 1:
 
-* Authentication
-* Orchestrator Agent
-* Patient Database
+- Authentication
+- Orchestrator Agent
+- Patient Database
 
 Phase 2:
 
-* Scheduling Agent
-* Doctor Database
+- Scheduling Agent
+- Doctor Database
 
 Phase 3:
 
-* Medical RAG
-* Diagnosis Agent
+- Medical RAG
+- Diagnosis Agent
 
 Phase 4:
 
-* Emergency Agent
+- Emergency Agent
 
 Phase 5:
 
-* Loyalty System
+- Loyalty System
 
 Phase 6:
 
-* Feedback Agent
-
-Phase 7:
-
-* Voice Calls
-* Phone Agent
+- Feedback Agent
 
 Phase 8:
 
-* Monitoring
-* Analytics
-* Production Deployment
+- Monitoring
+- Analytics
+- Production Deployment
 
-```
-```
+---
+
+## Clarifications & Scope Decisions (Spec Kit Clarify)
+
+Following the specification clarification step, the following architectural and scope decisions have been finalized:
+
+1. **Interaction Channels (MVP Scope):** The MVP will focus primarily on Text Chat and Medical Image uploads. Voice input and real-time Phone Call/IVR integrations will be simulated or deferred to a later phase.
+2. **Emergency Dispatch Timer:** The emergency timer (e.g., 30s for Heart Attack, 60s for Stroke) serves as a validation window. If the patient does not cancel the alert or a clinician does not override it within that timeframe, the ambulance dispatch triggers automatically.
+3. **LLM & Speech Stack:** Cloud-based models (such as GPT-4o / Claude 3.5 Sonnet) and cloud STT/TTS APIs will be used for rapid development and high reliability.
+4. **Loyalty System Integration:** The loyalty points and rewards will be persisted directly in the Patient Profile table in PostgreSQL. The booking logic will automatically award points upon successful appointment completion.
+
